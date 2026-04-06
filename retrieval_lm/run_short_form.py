@@ -312,7 +312,7 @@ def main():
     def generate(prompt, evidences, max_new_tokens):
         return call_model_rerank_w_scores_batch(prompt, evidences=evidences, model=model, max_new_tokens=max_new_tokens,
                                                 rel_tokens=rel_tokens, ret_tokens=ret_tokens, grd_tokens=grd_tokens, ut_tokens=ut_tokens,
-                                                threshold=args.threshold, max_depth=args.max_depth, use_seqscore=args.use_seqscore,
+                                                threshold=args.threshold, use_seqscore=args.use_seqscore,
                                                 w_rel=args.w_rel, w_sup=args.w_sup, w_use=args.w_use, mode=args.mode, closed=args.task in ["fever", "arc_c"])
 
     preds = []
