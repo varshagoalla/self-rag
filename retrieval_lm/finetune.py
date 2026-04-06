@@ -353,6 +353,7 @@ def encode_with_messages_format(example, tokenizer, max_seq_length):
 
 def main():
     args = parse_args()
+    context_markups = None
 
     # A hacky way to make llama work with flash attention
     if args.use_flash_attn:
@@ -446,6 +447,7 @@ def main():
     # no default pad token for llama!
     # here we add all special tokens again, because the default ones are not in the special_tokens_map
     if isinstance(tokenizer, LlamaTokenizer) or isinstance(tokenizer, LlamaTokenizerFast):
+        special_token_dict = {}
         if args.use_special_tokens is True:
             special_token_dict = {"additional_special_tokens": ["[No Retrieval]", "[Retrieval]", "[Continue to Use Evidence]", "[Irrelevant]", "[Relevant]", "<paragraph>", "</paragraph>", "[Utility:1]", "[Utility:2]", "[Utility:3]", "[Utility:4]", "[Utility:5]", "[Fully supported]", "[Partially supported]", "[No support / Contradictory]"]}
         special_token_dict["bos_token"] = "<s>"
@@ -460,7 +462,10 @@ def main():
         if args.use_special_tokens is False:
             assert num_added_tokens in [0, 1], "LlamaTokenizer should only add one special token - the pad_token, or no tokens if pad token present."
         else:
-            assert num_added_tokens > 10, "special tokens must be added to the original tokenizers."
+            # Starting from the original Llama tokenizer adds the Self-RAG control tokens here.
+            # Continuing from an existing Self-RAG checkpoint may add 0 because those tokens already exist.
+            assert num_added_tokens == 0 or num_added_tokens > 10, \
+                "Expected either an original tokenizer that adds Self-RAG special tokens, or a tokenizer that already contains them."
     elif isinstance(tokenizer, GPTNeoXTokenizerFast):
         num_added_tokens = tokenizer.add_special_tokens({
             "pad_token": "<pad>",
@@ -477,12 +482,13 @@ def main():
 
     if args.use_lora:
         logger.info("Initializing LORA model...")
-        modules_to_save = ["embed_tokens"]
+        modules_to_save = ["embed_tokens", "lm_head"]
         peft_config = LoraConfig(
             task_type=TaskType.CAUSAL_LM, 
             inference_mode=False, 
             r=args.lora_rank, 
-            #modules_to_save=modules_to_save,
+            target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+            modules_to_save=modules_to_save,
             lora_alpha=args.lora_alpha, 
             lora_dropout=args.lora_dropout
         )
@@ -515,21 +521,8 @@ def main():
         lm_datasets = lm_datasets.filter(lambda example: (example['labels'] != -100).any())
 
     train_dataset = lm_datasets["train"]
-    print(train_dataset[0])
-    print(train_dataset[1000])
-    print(train_dataset[500])
-    print(train_dataset[2000])
-    print(train_dataset[10000])
-    with open("processed.json", "w") as outfile:
-        new_data = []
-        for item in train_dataset:
-            print(item)
-            labels = [int(i) for i in item["labels"]]
-            input_ids = [int(i) for i in item["input_ids"]]
-            new_data.append({"labels": labels, "input_ids": input_ids})
-        json.dump(new_data, outfile)
     # Log a few random samples from the training set:
-    for index in random.sample(range(len(train_dataset)), 3):
+    for index in random.sample(range(len(train_dataset)), min(3, len(train_dataset))):
         logger.info(f"Sample {index} of the training set: {train_dataset[index]}.")
 
     # DataLoaders creation:
