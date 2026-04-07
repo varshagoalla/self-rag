@@ -1,3 +1,4 @@
+# Create conda env on login node
 module load Anaconda3/2024.02-1
 conda create -n selfrag python=3.10
 conda activate selfrag
@@ -19,7 +20,8 @@ python -c "from huggingface_hub import snapshot_download; snapshot_download(repo
 
 
 
-# Open an interactive session on the cluster with 1 GPU to build flash attention and test out the evaluation code.
+# Open an interactive session on the cluster with 1 GPU to build flash attention and test out the evaluation code on pretrained self-rag.
+# Change all paths according to your setup
 srun --partition=gpu --nodes=1 --ntasks=1 --gres=gpu:1 --cpus-per-task=8 --mem=64G --time=04:00:00 --pty bash
 conda activate selfrag
 module load GCC/14.2.0
@@ -33,10 +35,14 @@ cd ~/wheelhouse/
 pip install ~/wheelhouse/flash_attn-2.3.6+cu122torch2.1cxx11abiFALSE-cp310-cp310-linux_x86_64.whl
 python run_short_form.py --model_name /scratch/user/varshagoalla/huggingface/selfrag_llama2_7b --input_file ../eval_data/popqa_longtail_w_gs_first_500_samples.jsonl --mode adaptive_retrieval --max_new_tokens 100 --threshold 0.2 --output_file popqa_results.json --metric match --ndocs 10 --use_groundness --use_utility --use_seqscore  --dtype half --device cuda
 
+# Commands to sft tinyllama
+# Install the train.jsonl file from huggingface
+sbatch slurm_tinyllama_selfrag.sh
 
-
-cd output/tinyllama_selfrag_sft/epoch_0/
-
-
+# After training is done, merge the lora weights into the base model and then evaluate on popqa
+# Chnage all paths inside merge_lora.py according to your setup
 python merge_lora.py 
+# Gives output for popqa
 python run_short_form.py --model_name  /scratch/user/varshagoalla/self-rag/retrieval_lm/output/tinyllama_selfrag_sft_merged --input_file ../eval_data/popqa_longtail_w_gs_first_500_samples.jsonl --mode adaptive_retrieval --max_new_tokens 100 --threshold 0.2 --output_file popqa_results_tinyllama.json --metric match --ndocs 10 --use_groundness --use_utility --use_seqscore  --dtype half --device cuda
+# Shows the generation prompt and model output for 10 samples that required retrieval - generates the reflection tokens
+python eval_merged_tinyllama.py --model_path output/tinyllama_finetuned/tinyllama_selfrag_sft_merged/ --train_file ../eval_data/popqa_longtail_w_gs_first_500_samples.jsonl
