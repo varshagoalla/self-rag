@@ -16,6 +16,13 @@ def metric_max_over_ground_truths(metric_fn, prediction, ground_truths):
     return max(scores_for_ground_truths)
 
 def accuracy(preds, labels):
+    if isinstance(preds, str):
+        preds = [preds]
+    if isinstance(labels, str):
+        labels = [[labels]]
+    elif labels and isinstance(labels[0], str):
+        labels = [labels]
+
     match_count = 0
     for pred, label in zip(preds, labels):
         target = label[0]
