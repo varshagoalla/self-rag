@@ -25,12 +25,14 @@ from metrics import match, accuracy
 
 
 seed = 633
+VLLM_MAX_LOGPROBS = 20
 
 torch.backends.cudnn.deterministic = True
 random.seed(seed)
 np.random.seed(seed)
 torch.manual_seed(seed)
-torch.cuda.manual_seed_all(seed)
+if torch.cuda.is_available() and os.environ.get("VLLM_USE_V1", "") not in {"1", "true", "True"}:
+    torch.cuda.manual_seed_all(seed)
 
 
 def postprocess_answer_option_conditioned(answer):
@@ -55,7 +57,7 @@ def call_model_rerank_w_scores_batch(prompt, evidences, model, max_new_tokens=15
     results = {}
     if mode != "always_retrieve":
         sampling_params = SamplingParams(
-            temperature=0.0, top_p=1.0, max_tokens=max_new_tokens, logprobs=32016)
+            temperature=0.0, top_p=1.0, max_tokens=max_new_tokens, logprobs=VLLM_MAX_LOGPROBS)
         preds = model.generate([prompt], sampling_params)
         pred_token_ids = preds[0].outputs[0].token_ids
         pred_text = preds[0].outputs[0].text
@@ -86,7 +88,7 @@ def call_model_rerank_w_scores_batch(prompt, evidences, model, max_new_tokens=15
         evidence_augmented_inputs = [prompt + "[Retrieval]<paragraph>{0}\n{1}</paragraph>".format(
             para["title"], para["text"]) for para in evidences]
         sampling_params = SamplingParams(
-            temperature=0.0, top_p=1.0, max_tokens=max_new_tokens, logprobs=5000)
+            temperature=0.0, top_p=1.0, max_tokens=max_new_tokens, logprobs=VLLM_MAX_LOGPROBS)
         preds = model.generate(evidence_augmented_inputs, sampling_params)
 
         relevance_score_dict = {}
@@ -299,11 +301,21 @@ def main():
         input_data, task=args.task)
     tokenizer = AutoTokenizer.from_pretrained(gpt, padding_side="left")
     if args.dtype is not None:
-        model = LLM(model=gpt, download_dir=args.download_dir,
-                    dtype=args.dtype, tensor_parallel_size=args.world_size,)
+        model = LLM(
+            model=gpt,
+            download_dir=args.download_dir,
+            dtype=args.dtype,
+            tensor_parallel_size=args.world_size,
+            enforce_eager=True,
+        )
     else:
-        model = LLM(model=gpt, download_dir=args.download_dir,
-                    dtype=args.dtype, tensor_parallel_size=args.world_size,)
+        model = LLM(
+            model=gpt,
+            download_dir=args.download_dir,
+            dtype=args.dtype,
+            tensor_parallel_size=args.world_size,
+            enforce_eager=True,
+        )
 
     # Get token ids for reflection tokens.
     ret_tokens, rel_tokens, grd_tokens, ut_tokens = load_special_tokens(
@@ -328,7 +340,7 @@ def main():
         _, evidences = process_data_evidences(row, top_n=args.ndocs)
         pred, results, do_retrieve = generate(
             prompt, evidences, max_new_tokens=args.max_new_tokens,)
-        if type(pred) is str and pred[0] == "#" or pred[0] == ":":
+        if isinstance(pred, str) and pred and (pred[0] == "#" or pred[0] == ":"):
             pred = pred[1:]
         prompts.append(prompt)
         preds.append(pred)
@@ -338,14 +350,14 @@ def main():
         if "answers" not in row and "answer" in row:
             row["answers"] = [row["answer"]] if type(
                 row["answer"]) is str else row["answer"]
+        if "SUPPORTS" in pred:
+            pred = "true"
+        elif "REFUTES" in pred:
+            pred = "false"
         if args.metric == "accuracy":
             metric_result = accuracy(pred, row["output"])
 
         elif args.metric == "match":
-            if "SUPPORTS" in pred:
-                pred = "true"
-            elif "REFUTES" in pred:
-                pred = "false"
             metric_result = match(pred, row["answers"])
         else:
             raise NotImplementedError

@@ -9,6 +9,53 @@ This includes the original implementation of [SELF-RAG: Learning to Retrieve, Ge
 Unlike a widely-adopted Retrieval-Augmented Generation (RAG; Figure left) approach, **Self-RAG** retrieves on demand (e.g., can retrieve multiple times or completely skip retrieval) given diverse queries, and criticize its own generation from multiple fine-grained aspects by predicting **reflection tokens** as an integral part of generation.
 We conduct a segment-wise beam search to select the output that maximizes the utility for diverse preferences.
 
+## DPO Extension
+
+This fork includes a DPO-based preference-tuning extension for Self-RAG. The goal is to improve Self-RAG's retrieval-aware generation behavior by constructing preference pairs over retrieval/no-retrieval trajectories and fine-tuning the model with QLoRA + DPO.
+
+Pipeline summary:
+
+1. Curate a 12k source set from the original Self-RAG training data, restricted to five knowledge-intensive datasets: FEVER, Natural Questions, ASQA, ARC-Easy, and OpenBookQA.
+2. Extract raw retrieval queries and clean them by dataset before retrieval, e.g., claim-only for FEVER, question-only for NQ/ASQA, and question plus answer choices for ARC/OBQA.
+3. Retrieve top passages with Contriever-MSMARCO from the Wikipedia passage index.
+4. Generate candidate trajectories with Self-RAG:
+   - no-retrieval branch: `prompt + [No Retrieval]`
+   - retrieval branch: `prompt + [Retrieval]<paragraph>...</paragraph>`
+5. Build three DPO pair types:
+   - Type A: generated retrieval vs. generated no-retrieval, chosen according to the oracle retrieval label
+   - Type B: retrieval vs. retrieval, comparing candidates generated from different retrieved passages
+   - Type C: oracle Self-RAG response vs. generated responses
+6. Build mixed DPO datasets using all Type A/B pairs plus sampled Type C pairs at 20k, 25k, and full-data sizes.
+7. Train Self-RAG with QLoRA + DPO, merge LoRA adapters, and evaluate on ARC Challenge, PopQA, TriviaQA, and PubHealth/Health Claims.
+
+Final DPO datasets:
+
+| Dataset | Pairs | Composition |
+|---|---:|---|
+| Type A | 10,853 | retrieval vs. no-retrieval |
+| Type B | 5,991 | retrieval vs. retrieval |
+| Type C | 21,706 | oracle vs. generated |
+| Mixed 20k | 20,000 | all Type A + all Type B + sampled Type C |
+| Mixed 25k | 25,000 | all Type A + all Type B + sampled Type C |
+| Mixed All | 38,550 | all Type A + all Type B + all Type C |
+
+Best short-form match results, reported as percentages:
+
+| Eval Dataset | Base | Best DPO | Gain | Best Model(s) |
+|---|---:|---:|---:|---|
+| ARC Challenge | 67.15 | 67.32 | +0.17 | Mixed 20k / Mixed 25k |
+| PopQA | 54.97 | 55.25 | +0.29 | Mixed 25k, 1 epoch |
+| TriviaQA | 66.18 | 66.42 | +0.23 | Type C, 2 epochs |
+| PubHealth / Health Claims | 71.94 | 72.14 | +0.20 | Type A / Type B / Mixed All |
+
+The gains are modest but consistent in the best-case comparison, indicating that the current preference data nudges Self-RAG behavior in the right direction while leaving room for stronger pair construction.
+
+For full data documentation, exact counts, script descriptions, pair-construction details, and command examples, see:
+
+[Self-RAG DPO Pipeline](retrieval_lm/dpo_scripts/README.md)
+
+Compressed data artifacts are available in the [`artifacts/`](artifacts/) directory.
+
 
 ![](images/teaser_self_rag_v8.png)
 
@@ -35,8 +82,9 @@ url={https://openreview.net/forum?id=hSyW5go0v8}
 3. [Training](#training)
 4. [Inference](#inference)
 5. [Baselines](#baselines)
-6. [FAQ](#faq)
-7. [Contact](#contact)
+6. [DPO Data Pipeline](retrieval_lm/dpo_scripts/README.md)
+7. [FAQ](#faq)
+8. [Contact](#contact)
 
 
 ## Installation

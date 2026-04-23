@@ -1,0 +1,5 @@
+
+# Large local data artifacts
+eval_data/*.jsonl
+retrieval_lm/dpo_data/*.jsonl
+train_data/*.jsonl
