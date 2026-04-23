@@ -54,6 +54,8 @@ For full data documentation, exact counts, script descriptions, pair-constructio
 
 [Self-RAG DPO Pipeline](retrieval_lm/dpo_scripts/README.md)
 
+Compressed data artifacts are available in the [`artifacts/`](artifacts/) directory.
+
 
 ![](images/teaser_self_rag_v8.png)
 

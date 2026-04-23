@@ -8,6 +8,12 @@ The data artifacts are in:
 self-rag/retrieval_lm/dpo_data
 ```
 
+Compressed data artifacts are available in:
+
+```text
+self-rag/artifacts
+```
+
 The scripts used to create them are archived in:
 
 ```text
