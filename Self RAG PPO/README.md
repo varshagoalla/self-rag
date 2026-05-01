@@ -1,6 +1,6 @@
 # Self-RAG PPO — Reinforcement Learning Experiments
 
-This folder contains all code, trained model adapters, evaluation datasets, and analysis notebooks for the PPO-based fine-tuning experiments on top of `selfrag/selfrag_llama2_7b`.
+This folder contains all code, trained model adapters, evaluation datasets, and analysis notebooks for the PPO reinforcement learning experiments on top of `selfrag/selfrag_llama2_7b`.
 
 ---
 
@@ -36,7 +36,8 @@ Evaluation was conducted on ARC Challenge, PopQA, and TriviaQA (short-form) and 
 | `outputs/basic_5k/` | PPO-Basic | 5K | Final adapter: `adapter_config.json`, `adapter_model.safetensors`, tokenizer, `evaluation_results.json`, `reward_history.json`, `reward_curves.png` |
 | `outputs/hard_5k/` | PPO-Hard | 5K | Same structure as above |
 | `outputs/hard_10k/` | PPO-Hard | 10K | Same structure as above |
-| `outputs/critic_10k/` | Critic-PPO | 10K | Final adapter + `evaluation_results_critic.json` + reward files |
+| `outputs/critic_5k/` | Critic-PPO | 5K | Final adapter + `evaluation_results_critic.json` + reward files |
+| `outputs/critic_10k/` | Critic-PPO | 10K | Same as above |
 | `outputs/critic_20k/` | Critic-PPO | 20K | Same as above |
 
 **Each complete output folder contains:**

@@ -1,0 +1,26 @@
+{
+  "baseline": {
+    "reward": 0.26618,
+    "utility": 0.86,
+    "groundedness": 0.12,
+    "relevance": 0.49,
+    "high_utility": 0.88,
+    "fully_supported": 0.015,
+    "relevant": 0.055,
+    "valid_format": 0.335,
+    "token_f1": 0.16907040031571127,
+    "exact_match": 0.0
+  },
+  "ppo": {
+    "reward": 0.25688,
+    "utility": 0.85,
+    "groundedness": 0.1175,
+    "relevance": 0.4575,
+    "high_utility": 0.87,
+    "fully_supported": 0.02,
+    "relevant": 0.06,
+    "valid_format": 0.355,
+    "token_f1": 0.18024152502552326,
+    "exact_match": 0.0
+  }
+}
