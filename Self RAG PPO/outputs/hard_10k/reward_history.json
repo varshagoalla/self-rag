@@ -1,0 +1,19 @@
+{
+  "reward_per_step": [
+    0.25475001335144043
+  ],
+  "components": {
+    "utility": [
+      0.5
+    ],
+    "groundedness": [
+      0.25
+    ],
+    "relevance": [
+      0.375
+    ],
+    "format": [
+      0.6875
+    ]
+  }
+}
