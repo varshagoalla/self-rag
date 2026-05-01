@@ -29,8 +29,6 @@ Evaluation was conducted on ARC Challenge, PopQA, and TriviaQA (short-form) and 
 | `ppo_critic_training.py` | Critic-PPO — uses a frozen critic model for reward scoring. Auto-evaluates after training and writes `evaluation_results_critic.json`. |
 | `merge_lora.py` | Merges a trained LoRA adapter into the base model weights for full-model evaluation (required for Self-RAG eval scripts which cannot load LoRA adapters directly). |
 
-> **Note on `evaluation_results.json`:** This file is generated automatically at the **end of training** by each training script's own built-in `evaluate_model()` function. It compares the PPO model against the baseline on the held-out test split using F1, containment, and reflection-token metrics. It is **not** produced by a separate eval script.
-
 ### Trained Models (`outputs/`)
 
 | Folder | Variant | Data Size | Contents |
@@ -77,7 +75,6 @@ Training / test splits are in `selfrag_data/`:
 |----------|---------|
 | `Analyze_All_Models.ipynb` | Short-form benchmark comparison (ARC, PopQA, TriviaQA) across base, PPO-Hard, and Critic-PPO variants. Produces `all_models_benchmarks.png` and `all_models_distribution.png`. |
 | `Analyze_LongForm_ASQA.ipynb` | Long-form ASQA evaluation — EM-Recall and ROUGE-L comparison between base and Critic-10K. Produces `longform_asqa_eval.png`. |
-| `Analyze_PPO_vs_Base.ipynb` | Head-to-head PPO vs base model analysis with score distributions. |
 
 ---
 

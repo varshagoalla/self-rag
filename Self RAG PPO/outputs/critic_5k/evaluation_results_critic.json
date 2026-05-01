@@ -1,0 +1,24 @@
+{
+  "baseline": {
+    "reward": NaN,
+    "utility": NaN,
+    "groundedness": 0.5,
+    "relevance": 0.5,
+    "high_utility": 0.88,
+    "fully_supported": 0.015,
+    "valid_format": 0.335,
+    "token_f1": 0.16907040031571127,
+    "exact_match": 0.0
+  },
+  "ppo": {
+    "reward": NaN,
+    "utility": NaN,
+    "groundedness": 0.5,
+    "relevance": 0.5,
+    "high_utility": 0.89,
+    "fully_supported": 0.01,
+    "valid_format": 0.305,
+    "token_f1": 0.16718612694172616,
+    "exact_match": 0.0
+  }
+}
