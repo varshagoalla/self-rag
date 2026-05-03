@@ -3,6 +3,8 @@ In this project, we investigate whether Self-RAG can be improved through post-tr
 
 We evaluate these approaches on short-form question answering and fact verification benchmarks, including ARC Challenge, PopQA, TriviaQA, and PubHealth/Health Claims. Our results show that DPO yields small but consistent improvements over the base Self-RAG model, while PPO reveals both the promise and the challenges of optimizing retrieval-aware behavior through reward design.
 
+[Report](NLP_Project_Report.pdf)
+
 
 ## PPO
 
