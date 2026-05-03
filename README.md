@@ -1,6 +1,16 @@
-## DPO Extension
 
-This fork includes a DPO-based preference-tuning extension for Self-RAG. The goal is to improve Self-RAG's retrieval-aware generation behavior by constructing preference pairs over retrieval/no-retrieval trajectories and fine-tuning the model with QLoRA + DPO.
+In this project, we investigate whether Self-RAG can be improved through post-training optimization. We study two complementary approaches. First, we build a Direct Preference Optimization (DPO) pipeline that constructs preference pairs over retrieval-aware reasoning trajectories. Second, we explore Proximal Policy Optimization (PPO) with both rule-based and critic-based reward designs to reinforce desirable reflection-token and evidence-grounded behaviors. Together, these methods allow us to test whether preference learning and reinforcement learning can improve Self-RAG's retrieval control and downstream answer quality.
+
+We evaluate these approaches on short-form question answering and fact verification benchmarks, including ARC Challenge, PopQA, TriviaQA, and PubHealth/Health Claims. Our results show that DPO yields small but consistent improvements over the base Self-RAG model, while PPO reveals both the promise and the challenges of optimizing retrieval-aware behavior through reward design.
+
+
+## PPO
+
+[PPO](Self%20RAG%20PPO/README.md)
+
+## DPO 
+
+DPO-based preference-tuning extension for Self-RAG. The goal is to improve Self-RAG's retrieval-aware generation behavior by constructing preference pairs over retrieval/no-retrieval trajectories and fine-tuning the model with QLoRA + DPO.
 
 Pipeline summary:
 
