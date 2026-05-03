@@ -1,0 +1,4 @@
+# Model weight files are too large for GitHub (>100MB).
+# Use Git LFS or download from the shared drive if needed.
+*.safetensors
+*.bin

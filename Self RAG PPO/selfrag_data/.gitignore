@@ -1,0 +1,4 @@
+# Large training data files (>100MB) — not tracked in git
+full_dataset.json
+train.json
+test.json
